@@ -1,0 +1,37 @@
+version: '3.8'
+
+volumes:
+  etc_wireguard:
+
+services:
+  wg-easy:
+    image: ghcr.io/wg-easy/wg-easy
+    container_name: wg-easy
+    environment:
+      - LANG=ru
+      - WG_HOST=IP_HOST
+      - PASSWORD=Test123
+      - PORT=51821
+      - WG_PORT=51820
+      - WG_DEFAULT_ADDRESS=10.8.0.x
+      - WG_DEFAULT_DNS=1.1.1.1
+      - WG_MTU=1420
+      - WG_ALLOWED_IPS=0.0.0.0/1, 128.0.0.0/1
+      - WG_PERSISTENT_KEEPALIVE=25
+      - WG_PRE_UP=echo "iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 PreDown = iptables -t nat -D POSTROUTING -j MASQUERADE -o eth0" > /etc/wireguard/pre-up.txt
+      - UI_TRAFFIC_STATS=true
+      - UI_CHART_TYPE=0 # (0 Charts disabled, 1 Line chart, 2 Area chart, 3 Bar chart)
+    volumes:
+      - etc_wireguard:/etc/wireguard
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    networks:
+      - host
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
